@@ -1,0 +1,67 @@
+---
+title: "Potential Client Detection, an ANN aproach for customer Classification"
+description: |
+  A new article created using the Distill format.
+author:
+  - name: Josep R.C.
+    url: https://www.linkedin.com/in/josep%F0%9F%8C%AB-roman-cardell-414880184/
+    affiliation: UIB Student
+    affiliation_url: https://www.uib.cat/
+date: "`r Sys.Date()`"
+output: 
+  distill::distill_article:
+    toc: true
+    toc_depth: 3
+    toc_float: true
+    code_folding: true
+    theme: theme1.css
+    selfe_contained: false
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = TRUE,
+	message = FALSE,
+	warning = FALSE
+)
+```
+
+```{r ,code_folding = "Libraries"}
+library(readr)
+library(tidyverse)
+```
+
+# About the data
+
+The dataset, **Bank Marketing**, is related with direct marketing campaigns of a Portuguese banking institution. The marketing campaigns were based on phone calls. Often, more than one contact to the same client was required, in order to access if the product (bank term deposit) would be (or not) subscribed. The classification goal is to **predict if the client will subscribe** a term deposit. 
+
+Data was recorded from May 2008 to November 2010. 
+
+# Feature Selection
+
+From my lack of knowledge in terms of *Term Deposits* I first did a bit of research in order to better understand the matter of analysis and thus, be able to efficiently select the optimum variables. I focused my research on [Investopedia](https://www.investopedia.com/terms/t/termdeposit.asp). 
+
+The features are divided in:
+  + **Personal and bank related client data**. I have decided to start with all variables as a profound description of the client is necessary in order to know if the person will be willing, or even able to invest in a term deposit.
+  + **Last contact data**. Regarding the last call data I believe it can be interesting to keep the month and day in which it occurred. My hypothesis is that there is a possible by which people in general fill more confident about their money in some periods of the year or the week. Also the duration of the call can be helpful. However, I've decided to not use a feature which described if the call was done via *telephone*, *cellular* or *unkown*, as a think it's redundant for this problem.
+  + Other attributes. I have kept the four variables as a description of the relation between the client and the current and previous campaigns.
+  
+For a detailed description of all features visit the [metadata].
+
+
+```{r Loading, code_folding = "Loading Data"}
+data <- read_delim("bank-full.csv", ";", escape_double = FALSE, trim_ws = TRUE)
+summary(data)
+```
+
+
+
+# References 
+
+[Moro et al., 2011] **S. Moro, R. Laureano and P. Cortez.** *Using Data Mining for Bank Direct Marketing: An Application of the CRISP-DM Methodology.* 
+  In P. Novais et al. (Eds.), Proceedings of the European Simulation and Modelling Conference - ESM'2011, pp. 117-121, Guimarães, Portugal, October, 2011. EUROSIS.
+  
+[Term Deposit, Fixed Income Essentials, Incesopedia](https://www.investopedia.com/terms/t/termdeposit.asp)
+
+
+
