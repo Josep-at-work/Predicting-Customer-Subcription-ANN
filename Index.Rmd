@@ -50,7 +50,7 @@ For a detailed description of all features visit the [metadata].
 
 
 ```{r Loading, code_folding = "Loading Data"}
-data <- read_delim("bank-full.csv", ";", escape_double = FALSE, trim_ws = TRUE)
+data <- read_delim("Data/bank-full.csv", ";", escape_double = FALSE, trim_ws = TRUE)
 summary(data)
 ```
 
