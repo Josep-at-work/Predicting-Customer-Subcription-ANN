@@ -29,6 +29,9 @@ knitr::opts_chunk$set(
 ```{r ,code_folding = "Libraries"}
 library(readr)
 library(tidyverse)
+library(magrittr)
+
+library(ggplot2)
 ```
 
 # About the data
@@ -37,23 +40,87 @@ The dataset, **Bank Marketing**, is related with direct marketing campaigns of a
 
 Data was recorded from May 2008 to November 2010. 
 
-# Feature Selection
+## Feature Selection
 
-From my lack of knowledge in terms of *Term Deposits* I first did a bit of research in order to better understand the matter of analysis and thus, be able to efficiently select the optimum variables. I focused my research on [Investopedia](https://www.investopedia.com/terms/t/termdeposit.asp). 
+From my lack of knowledge in terms of *Term Deposits* I first did a bit of research in order to better understand the matter of analysis and thus, be able to efficiently select the optimum variables. I focused my research on [Investopedia term deposit article](https://www.investopedia.com/terms/t/termdeposit.asp). 
 
 The features are divided in:
   + **Personal and bank related client data**. I have decided to start with all variables as a profound description of the client is necessary in order to know if the person will be willing, or even able to invest in a term deposit.
-  + **Last contact data**. Regarding the last call data I believe it can be interesting to keep the month and day in which it occurred. My hypothesis is that there is a possible by which people in general fill more confident about their money in some periods of the year or the week. Also the duration of the call can be helpful. However, I've decided to not use a feature which described if the call was done via *telephone*, *cellular* or *unkown*, as a think it's redundant for this problem.
+  + **Last contact data**. Regarding the last call data, I believe it can be interesting to keep the month and day in which it occurred. My hypothesis is that there is a possible by which people in general fill more confident about their money in some periods of the year or the week. Also the duration of the call can be helpful. However, I've decided to not use a feature which labels the call as it was done via *telephone*, *cellular* or *unkown*, as a think it's redundant for this problem.
   + Other attributes. I have kept the four variables as a description of the relation between the client and the current and previous campaigns.
   
-For a detailed description of all features visit the [metadata].
+For a detailed description of all features visit the [metadata](https://github.com/Josep-at-work/Predicting-Customer-Subcription-ANN/blob/main/Data/bank-names.txt).
 
+# Data Wrangling
+
+First of all, I've loaded the dataset and removed the *contact* feature. Then, I've modified some data types. I've transformed all binary variables into 1 and 0 instead of *yes* and *no* respectively, and all character features into factors. Both of this changes will help on the visualization tasks and the training of the model. 
 
 ```{r Loading, code_folding = "Loading Data"}
 data <- read_delim("Data/bank-full.csv", ";", escape_double = FALSE, trim_ws = TRUE)
-summary(data)
+data %<>% select(-contact)
+str(data)
 ```
 
+```{r}
+data %<>% mutate(across(c(job, marital, education, month, poutcome), as.factor))
+data$default <- ifelse(data$default == "yes", 1, 0)
+data$housing <- ifelse(data$housing == "yes", 1, 0)
+data$loan <- ifelse(data$loan == "yes", 1, 0)
+data$y <- ifelse(data$y == "yes", 1, 0)
+summary(data)
+```
+From the target variable we can say that only 11.7% of the clients subscribed to the term deposit. 
+
+## Missing values.
+
+```{r}
+colSums(is.na(data))
+```
+There are no missing values in any of the features.
+
+# Exploratory Data Analysis
+
+Now it's time to study the data behavior and relations, as well as detect outliers and other specific values.
+
+## Target variable
+
+```{r}
+data %>%
+  ggplot(aes(as.factor(y), fill = as.factor(y))) +
+  geom_bar() +
+  theme_minimal() +
+  labs(x = "Target") +
+  theme(legend.position = "none") +
+  ggtitle("Target")
+```
+
+Starting form the fact that only a 11.7% of the contacted clients subscribed to the campaign, the following plots aim to visualize the normalized distribution of the target variable among all categorical features:
+
+```{r}
+data %>%
+  ggplot(aes(y, fill = job)) +
+  geom_bar(position = "fill") +
+  theme_minimal() +
+  ggtitle("By job")
+
+data %>%
+  ggplot(aes(y, fill = marital)) +
+  geom_bar(position = "fill") +
+  theme_minimal() +
+  ggtitle("By marital status")
+
+data %>%
+  ggplot(aes(y, fill = education)) +
+  geom_bar(position = "fill") +
+  theme_minimal() +
+  ggtitle("By education")
+
+data %>%
+  ggplot(aes(y, fill = month)) +
+  geom_bar(position = "fill") +
+  theme_minimal() +
+  ggtitle("By month")
+```
 
 
 # References 
