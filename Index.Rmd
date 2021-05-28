@@ -1,7 +1,7 @@
 ---
-title: "Potential Client Detection, an ANN aproach for customer Classification"
+title: "Potential Client Detection"
 description: |
-  A new article created using the Distill format.
+  An ANN aproach for customer Classification.
 author:
   - name: Josep R.C.
     url: https://www.linkedin.com/in/josep%F0%9F%8C%AB-roman-cardell-414880184/
@@ -32,6 +32,7 @@ library(tidyverse)
 library(magrittr)
 
 library(ggplot2)
+library(rmarkdown)
 ```
 
 # About the data
@@ -61,12 +62,13 @@ data %<>% select(-contact)
 str(data)
 ```
 
-```{r}
-data %<>% mutate(across(c(job, marital, education, month, poutcome), as.factor))
+```{r, code_folding = "Summary"}
 data$default <- ifelse(data$default == "yes", 1, 0)
 data$housing <- ifelse(data$housing == "yes", 1, 0)
 data$loan <- ifelse(data$loan == "yes", 1, 0)
 data$y <- ifelse(data$y == "yes", 1, 0)
+data %<>% mutate(across(c(job, marital, education, month, poutcome,
+                          default, housing, loan, y), as.factor))
 summary(data)
 ```
 From the target variable we can say that only 11.7% of the clients subscribed to the term deposit. 
@@ -74,7 +76,7 @@ From the target variable we can say that only 11.7% of the clients subscribed to
 ## Missing values.
 
 ```{r}
-colSums(is.na(data))
+data.frame("NA's" = colSums(is.na(data))) %>% paged_table()
 ```
 There are no missing values in any of the features.
 
@@ -84,7 +86,7 @@ Now it's time to study the data behavior and relations, as well as detect outlie
 
 ## Target variable
 
-```{r}
+```{r Target, code_folding = "Target Feature"}
 data %>%
   ggplot(aes(as.factor(y), fill = as.factor(y))) +
   geom_bar() +
@@ -94,9 +96,9 @@ data %>%
   ggtitle("Target")
 ```
 
-Starting form the fact that only a 11.7% of the contacted clients subscribed to the campaign, the following plots aim to visualize the normalized distribution of the target variable among all categorical features:
+Starting from the fact that only a 11.7% of the contacted clients subscribed to the campaign, the following plots aim to visualize the **normalized distribution** of the target variable among all categorical features:
 
-```{r}
+```{r Categorical Features, code_folding = "Categorical Features"}
 data %>%
   ggplot(aes(y, fill = job)) +
   geom_bar(position = "fill") +
@@ -115,12 +117,105 @@ data %>%
   theme_minimal() +
   ggtitle("By education")
 
+# data %>%
+#   ggplot(aes(y, fill = month)) +
+#   geom_bar(position = "fill") +
+#   theme_minimal() +
+#   ggtitle("By month")
+
 data %>%
-  ggplot(aes(y, fill = month)) +
+  ggplot(aes(y, fill = poutcome)) +
   geom_bar(position = "fill") +
   theme_minimal() +
-  ggtitle("By month")
+  ggtitle("By Previous Campaign's outcome")
 ```
+
+From these normalized stacked plots there is little to say. There isn't much difference in the proportion of people of each category in both groups. The most relevant aspect is that the proportion of people who subscribed in previous campaigns is higher in the group of customers who actually subscribed to the current campaign of study.
+
+
+```{r Boxplots, code_folding = "Continuous Features"}
+data %>%
+  ggplot(aes(x = y, y = age)) +
+  geom_violin(aes(color = y), fill = 'grey', alpha=0.5) +
+  geom_boxplot(width = 0.05) +
+  theme_minimal() +
+  theme(legend.position = "none") +
+  ggtitle("Outcome By Age")
+
+data %>%
+  ggplot(aes(x = y, y = balance)) +
+  geom_violin(aes(color = y), fill = 'grey', alpha=0.5, trim=F) +
+  theme_minimal() +
+  theme(legend.position = "none") +
+  ggtitle("Outcome By Balance")
+
+data %>%
+  ggplot(aes(x = y, y = duration)) +
+  geom_violin(aes(color = y), fill = 'grey', alpha=0.5, trim=F) +
+  theme_minimal() +
+  theme(legend.position = "none") +
+  ggtitle("Outcome By Duration")
+
+
+```
+
+The target variable is a binary category, thus a huge advantage is that it's not possible to have outliers on the predicting variable. Then, by visualizing the distributions of the continuous features, we can see the points representing outliers regarding the respective distributions. However, the outliers on the dependent variables are proportionally equally distributed between both groups of clients. Hence, there is no need to modify those extreme values, which just represent minority groups of the population of this study.
+
+Note that the distribution of subscribed customers ($y=1$), is wider at higher values of age and call duration compared to the other category
+
+```{r Time Features, code_folding = "Time Features"}
+data %>%
+  ggplot(aes(month, fill = y)) +
+  geom_bar(position = "stack") +
+  theme_minimal() +
+  ggtitle("Outcome By Month")
+
+data %>%
+  ggplot(aes(day, fill = y)) +
+  geom_bar(position = "stack") +
+  theme_minimal() +
+  ggtitle("Outcome By day of the month")
+```
+
+```{r, code_folding = "Binary Features"}
+data %>%
+  ggplot(aes(housing, fill = y)) +
+  geom_bar(position = "fill") +
+  theme_minimal() +
+  ggtitle("Housing Loan")
+
+data %>%
+  ggplot(aes(loan, fill = y)) +
+  geom_bar(position = "fill") +
+  theme_minimal() +
+  ggtitle("Loan")
+```
+
+Customers with loans had lower tendency on subscribing to the term deposit.
+
+Regarding the previous contacts, more than 75% of the customers where not contacted for previous campaigns. The following plot shows the trend of the remaining quantile. 
+
+About the previous contacts from the campaign of study, at least 75% of the customers where contacted a maximum of 3 times.
+
+```{r Previous contacts, code_folding = "Previous Contacts", layout = "l-page"}
+data %>% filter(pdays>=0 & pdays<=400) %>%
+  ggplot(aes(pdays, fill = y)) +
+  geom_bar(position = "stack") +
+  facet_grid(rows = vars(y), scales = "free") +
+  theme_minimal() +
+  theme(legend.position = "none") +
+  ggtitle("Days from last contact for previous campaigns")
+
+data %>% filter(campaign <= 10) %>%
+  ggplot(aes(campaign, fill = y)) +
+  geom_bar(position = "stack") +
+  facet_grid(rows = vars(y), scales = "free") +
+  theme_minimal() +
+  theme(legend.position = "none") +
+  ggtitle("Contacts during this campaign")
+```
+
+There are two picks in the number of customers who subscribed to the term deposite and had a contact for previous campaigns at around 90 and 170 previous days. 
 
 
 # References 
