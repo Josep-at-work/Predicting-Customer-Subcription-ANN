@@ -30,7 +30,7 @@ knitr::opts_chunk$set(
 library(readr)
 library(tidyverse)
 library(magrittr)
-
+library(caret)
 library(neuralnet)
 
 library(ggplot2)
@@ -52,7 +52,7 @@ The features are divided in:
   + **Last contact data**. Regarding the last call data, I believe it can be interesting to keep the month and day in which it occurred. My hypothesis is that there is a possible by which people in general fill more confident about their money in some periods of the year or the week. Also the duration of the call can be helpful. However, I've decided to not use a feature which labels the call as it was done via *telephone*, *cellular* or *unkown*, as a think it's redundant for this problem.
   + Other attributes. I have kept the four variables as a description of the relation between the client and the current and previous campaigns.
   
-For a detailed description of all features visit the [metadata](https://github.com/Josep-at-work/Predicting-Customer-Subcription-ANN/blob/main/Data/bank-names.txt).
+For a detailed description of all features go to the [metadata](https://github.com/Josep-at-work/Predicting-Customer-Subcription-ANN/blob/main/Data/bank-names.txt) file.
 
 # Data Wrangling
 
@@ -103,6 +103,8 @@ data.frame(prop.table(table(data$y))) %>% paged_table()
 
 The target data in this study is heavily unbalanced.
 
+## Features
+
 Starting from the fact that only a 11.7% of the contacted clients subscribed to the campaign, the following plots aim to visualize the **normalized distribution** of the target variable among all categorical features:
 
 ```{r Categorical Features, code_folding = "Categorical Features"}
@@ -123,12 +125,6 @@ data %>%
   geom_bar(position = "fill") +
   theme_minimal() +
   ggtitle("By education")
-
-# data %>%
-#   ggplot(aes(y, fill = month)) +
-#   geom_bar(position = "fill") +
-#   theme_minimal() +
-#   ggtitle("By month")
 
 data %>%
   ggplot(aes(y, fill = poutcome)) +
@@ -161,7 +157,7 @@ data %>%
   geom_violin(aes(color = y), fill = 'grey', alpha=0.5, trim=F) +
   theme_minimal() +
   theme(legend.position = "none") +
-  ggtitle("Outcome By Duration")
+  ggtitle("Outcome By call Duration")
 
 
 ```
@@ -260,6 +256,29 @@ colnames(results) = as.character(lr)
 rownames(results) = a
 ```
 
+I'll apply a normalization and standarization to some model's input to compare the performance.
+
+```{r Normalization}
+minmax <- function(v){
+  return((v - min(v))/(max(v) - min(v)))
+}
+X_train_norm = apply(train[-m], 2, FUN = minmax)
+X_test_norm = apply(test[-m], 2, FUN = minmax)
+
+standardize <- function(x) { 
+  return((x - mean(x)) / (sd(x)))
+}
+X_train_std = apply(train[-m], 2, FUN = standardize)
+X_test_std = apply(test[-m], 2, FUN = standardize)
+```
+
+```{r Transformations}
+train_norm = cbind(X_train_norm, train[m])
+test_norm = cbind(X_test_norm, test[m])
+train_std = cbind(X_train_std, train[m])
+test_std = cbind(X_test_std, test[m])
+```
+
 
 ### ANN 1
 
@@ -270,7 +289,7 @@ data.frame(Parameter = c("Hidden Layers", "Learning Rate",
 ```
 
 
-```{r}
+```{r M1, code_folding = "Model1"}
 for (l in 1:length(lr)){
   set.seed(2805)
   ann1 <- neuralnet(formula = y ~ ., data = train,
@@ -287,25 +306,33 @@ for (l in 1:length(lr)){
 }
 results %>% as.data.frame() %>% paged_table()
 ```
-```{r}
+
+```{r best1}
+best1 = results[which.min(results)]
+ann1 <- neuralnet(formula = y ~ ., data = train,
+                  hidden = c(4), learningrate = best1,
+                  algorithm = "backprop", act.fct = "logistic",
+                  err.fct = "sse", 
+                  linear.output = F)
 pred1 <- compute(ann1, test[-m])
 Acc1 = mean(test$y == round(pred1$net.result))
 table(round(pred1$net.result), test$y)
 ```
 
-### ANN2
+### Normalized
 
 ```{r M2Description}
 data.frame(Parameter = c("Hidden Layers", "Learning Rate",
-                                  "Algorithm", "Activation"),
-                    Values = c(3, "tunning", "backprop", "logistic")) %>% paged_table()
+                                  "Algorithm", "Activation",
+                         "Processing"),
+                    Values = c(3, "tunning", "backprop", "logistic", "normalized")) %>% paged_table()
 ```
 
 
-```{r}
+```{r M2, code_folding = "Model2"}
+set.seed(2805)
 for (l in 1:length(lr)){
-  set.seed(2805)
-  ann2 <- neuralnet(formula = y ~ ., data = train,
+  ann2 <- neuralnet(formula = y ~ ., data = train_norm,
                   hidden = c(2, 4, 3), learningrate = lr[l],
                   algorithm = "backprop", act.fct = "logistic",
                   err.fct = "sse", 
@@ -320,65 +347,262 @@ for (l in 1:length(lr)){
 results %>% as.data.frame() %>% paged_table()
 ```
 
-```{r}
-pred2 <- compute(ann2, test[-m])
+```{r BestM2}
+best2 = results[which.min(results)]
+ann2 <- neuralnet(formula = y ~ ., data = train_norm,
+                  hidden = c(2, 4, 3), learningrate = best2,
+                  algorithm = "backprop", act.fct = "logistic",
+                  err.fct = "sse", 
+                  linear.output = F)
+pred2 <- compute(ann2, test_norm[-m])
 Acc1 = mean(test$y == round(pred2$net.result))
 table(round(pred2$net.result), test$y)
 ```
 
-Eventhough this model is more complex than the first one, with 3 hidden layers and 9 neurons, still the performance of the model is poor.  
 
-### ANN3
-
-For this third model I'll try out a different propagation algorithm resilient backpropagation.
+### Standarized
 
 ```{r M3Description}
 data.frame(Parameter = c("Hidden Layers", "Learning Rate",
-                                  "Algorithm", "Activation", 
-                         "Threshold"),
-                    Values = c(3, "0.05<lr<1", "resilient backprop", "logistic", 1)) %>% paged_table()
+                                  "Algorithm", "Activation",
+                         "Processing"),
+                    Values = c(3, "tunning", "backprop", "logistic", "standarized")) %>% paged_table()
 ```
 
-```{r}
-ann3 <- neuralnet(formula = y ~ ., data = train,
-                  hidden = c(2, 4, 2), learningrate = 0.3,
-                  # learningrate.limit = c(0.05, 1),
-                  algorithm = "rprop+", act.fct = "logistic",
-                  err.fct = "sse", threshold = 1, 
-                  linear.output = F)
 
-pred3 <- compute(ann3, test[-m])
+```{r, code_folding = "Model3"}
+set.seed(2805)
+for (l in 1:length(lr)){
+  ann3 <- neuralnet(formula = y ~ ., data = train_std,
+                  hidden = c(2, 4, 3), learningrate = lr[l],
+                  algorithm = "backprop", act.fct = "logistic",
+                  err.fct = "sse", 
+                  linear.output = F)
+  if (is.null(ann3$result.matrix[1])){
+    results[a, l] = NA
+  }
+  else {
+    results[a, l] = ann3$result.matrix[1]
+  }
+}
+results %>% as.data.frame() %>% paged_table()
+```
+
+```{r Best3}
+best3 = results[which.min(results)]
+ann3 <- neuralnet(formula = y ~ ., data = train_std,
+                  hidden = c(2, 4, 3), learningrate = lr[l],
+                  algorithm = "backprop", act.fct = "logistic",
+                  err.fct = "sse", 
+                  linear.output = F)
+pred3 <- compute(ann3, test_std[-m])
 Acc3 = mean(test$y == round(pred3$net.result))
 table(round(pred3$net.result), test$y)
-Acc3_2 = mean(test$y == ifelse(pred3$net.result<=0.073997670, 0, 1))
-table(ifelse(pred3$net.result<=0.073997670, 0, 1), test$y)
-confusionMatrix(data = as.factor(ifelse(pred3$net.result<=0.073997670, 0, 1)), 
-                reference = as.factor(test$y))
 ```
 
-### Oversampling  
+Eventhough models 2 and 3 are more complex than the first one, with 3 hidden layers and 9 neurons, and standarized data, the performance of the model is still poor.  
 
-As seen during the EDA, the target variable is heavily unbalanced. Hence, I've decided to compensate it by duplicating the observations of the minority group in the training set and then shuffeling the whole dataset and training the neural network with the outcome of this  process.
 
-```{r Oversampling, code_folding = "Oversampling"}
-minority <- train %>% filter(y==1)
-train2 <- rbind(train, minority) %>% sample_frac()
-prop.table(table(train2$y)); prop.table(table(train$y))
+### Alternative Algorithms
+
+In this section I've tried out two different propagation algorithms, resilient backpropagation and it's globally convergent version.
+
+```{r M4Description}
+data.frame(Parameter = c("Hidden Layers", "Learning Rate",
+                                  "Algorithm", "Activation", 
+                         "Threshold", "Processing"),
+                    Values = c(3, 0.3, "resilient backprop", "logistic", 1, "normalized")) %>% paged_table()
 ```
 
-```{r}
-ann4 <- neuralnet(formula = y ~ ., data = train2,
-                  hidden = c(2, 4, 2), learningrate = 0.5,
+```{r, code_folding = "Model 4"}
+set.seed(2805)
+ann4 <- neuralnet(formula = y ~ ., data = train_norm,
+                  hidden = c(2, 4, 2), learningrate = 0.3,
                   # learningrate.limit = c(0.05, 1),
-                  algorithm = "backprop", act.fct = "logistic",
+                  algorithm = "rprop+",
+                  # act.fct = "logistic",
                   err.fct = "sse", threshold = 1, 
                   linear.output = F)
-ann4$result.matrix[1]
-pred4 <- compute(ann4, test[-m])
+
+pred4 <- compute(ann4, test_norm[-m])
 Acc4 = mean(test$y == round(pred4$net.result))
 table(round(pred4$net.result), test$y)
 ```
+```{r, code_folding = "CM M4"}
+confusionMatrix(data = as.factor(round(pred4$net.result)), 
+                reference = as.factor(test$y))
+```
+```{r M5Description}
+data.frame(Parameter = c("Hidden Layers", "Learning Rate",
+                                  "Algorithm", "Activation", 
+                         "Threshold", "Processing"),
+                    Values = c(3, 0.3, "sag", "logistic", 1, "normalized")) %>% paged_table()
+```
 
+```{r, code_folding = "Model 5"}
+set.seed(2805)
+ann5 <- neuralnet(formula = y ~ ., data = train_norm,
+                  hidden = c(2, 4, 2), learningrate = 0.3,
+                  # learningrate.limit = c(0.05, 1),
+                  algorithm = "sag",
+                  # act.fct = "logistic",
+                  err.fct = "sse", threshold = 1, 
+                  linear.output = F)
+
+pred5 <- compute(ann5, test_norm[-m])
+Acc5 = mean(test$y == round(pred5$net.result))
+table(round(pred5$net.result), test$y)
+```
+
+
+```{r, code_folding = "CM M5"}
+confusionMatrix(data = as.factor(round(pred5$net.result)), 
+                reference = as.factor(test$y))
+```
+
+
+
+These models have higher execution time and need a high threshold in order to converge. The upside is that are the first models able to predict subscribed customers.
+
+As explained before, the model's output is a continuous value between 0 and 1. The previous results are assuming that the reference in order to rise to 1 or drop to 0, is 0.5.
+
+
+### Oversampling
+
+As seen during the EDA, the target variable is heavily unbalanced. Hence, I've decided to compensate it by duplicating the observations of the minority group in the training set and then shuffling the whole dataset and training the neural network with the outcome of this  process.
+
+This is a common practice for unbalanced data. In the original paper of [Moro et al., 2011](https://core.ac.uk/download/pdf/55616194.pdf), they use this same technique. 
+
+```{r Oversampling, code_folding = "Oversampling"}
+minority <- train_norm %>% filter(y==1)
+train_norm2 <- rbind(train_norm, minority) %>% sample_frac()
+data.frame("original" = prop.table(table(train$y)), "oversampled" = prop.table(table(train_norm2$y))) %>% paged_table()
+```
+
+```{r ann6, code_folding = "Model 6"}
+set.seed(2805)
+ann6 <- neuralnet(formula = y ~ ., data = train_norm2,
+                  hidden = c(2, 4, 2), learningrate = 0.005,
+                  # learningrate.limit = c(0.05, 1),
+                  algorithm = "backprop", act.fct = "logistic",
+                  err.fct = "sse",
+                  # threshold = 1, 
+                  linear.output = F)
+ # ann4$result.matrix[1] 
+pred6 <- compute(ann6, test_norm[-m])
+Acc6 = mean(test$y == round(pred6$net.result))
+table(round(pred6$net.result), test$y)
+```
+
+### Undersampling
+
+During the EDA I've seen that many descriptive features contain some outliers. In this section I've analyzed the outliers in order to detect if target variable has de same distribution on the extreme values. Lastly, I've filtered the observation in order to, removing some outliers, increase the proportion of the minority group($y=1$).
+
+```{r Undersampling}
+# data %>% filter(balance >= 1500) %>% select(y) %>% table() %>% prop.table()
+# 
+# data %>% filter(duration > 4000 | duration < 100) %>% select(y) %>% table() %>% prop.table() 
+# 
+# data %>% filter(pdays > 400) %>% select(y) %>% table() %>% prop.table()
+# 
+# data %>% filter(campaign >= 9) %>% select(y) %>% table() %>% prop.table()
+# 
+# data %>% filter(job == "blue-collar") %>% select(y) %>% table() %>% prop.table()
+
+undersamp_data <- copy %>% filter(balance <= 15000, duration <= 4000 & duration > 100,
+                pdays <= 400, campaign <= 9, job != "blue-collar")
+
+undersamp_data$y %>% table() %>% prop.table()
+```
+
+```{r, code_folding = "Preprocessing"}
+model_data2 <- undersamp_data %>% 
+  mutate(across(c(job, marital, education, month, poutcome), as.factor)) %>%
+  mutate(across(c(job, marital, education, month, poutcome,
+                          default, housing, loan, y), as.numeric))
+```
+
+Next step, is to split the new set into training and testing in a 70/30 ratio.
+
+```{r Split2, code_folding = "Split"}
+set.seed(2805)
+n = nrow(undersamp_data)
+idx = sample(n, n*0.7)
+train3 = model_data2[idx, ]
+test3 = model_data2[idx, ]
+X_train_norm3 = apply(train3[-m], 2, FUN = minmax)
+X_test_norm3 = apply(test3[-m], 2, FUN = minmax)
+train_norm3 = cbind(X_train_norm3, train3$y)
+test_norm3 = cbind(X_test_norm3, test3$y)
+```
+
+```{r ann7, code_folding = "Model 7"}
+set.seed(2805)
+ann7 <- neuralnet(formula = y ~ ., data = train3,
+                  hidden = c(2, 4, 2), learningrate = 0.01,
+                  # learningrate.limit = c(0.05, 1),
+                  algorithm = "backprop", act.fct = "logistic",
+                  err.fct = "sse", threshold = 0.0001, 
+                  linear.output = F)
+
+pred7 <- compute(ann7, test[-m])
+Acc7 = mean(test$y == round(pred7$net.result))
+table(round(pred7$net.result), test$y)
+```
+
+## Best Model
+
+Model 5, has been the best performing one. Hence, as the last section of the project I've evaluate the precision of Model 5 this time with a cross validation over the whole dataset in order to have a more realistic approach.
+
+```{r, code_folding = "Best Model"}
+cv.accuracy <- NULL
+k <- 5
+
+## to cotrol the process
+library(plyr) 
+pbar <- create_progress_bar('text')
+pbar$init(k)
+
+set.seed(2805)
+## the loop to implement cross validation
+for(i in 1:k){
+    index <- sample(1:n, round(0.7*n))
+    trainset.cv <- model_data[index,]
+    testset.cv <- model_data[-index,]
+    train_norm.cv = apply(trainset.cv, 2, FUN = minmax) %>% as.data.frame()
+    test_norm.cv = apply(testset.cv, 2, FUN = minmax) %>% as.data.frame()
+    
+    ANN.CV <- neuralnet(formula = y ~ ., data = train_norm.cv,
+                  hidden = c(2, 4, 2), learningrate = 0.3,
+                  # learningrate.limit = c(0.05, 1),
+                  algorithm = "sag",
+                  # act.fct = "logistic",
+                  err.fct = "sse", threshold = 0.3, 
+                  linear.output = F)
+    
+    pr.ANN.cv <- compute(ANN.CV, test_norm.cv[,-m]) 
+
+    ntest <- length(test_norm.cv)
+    cv.accuracy[i] <- mean(test_norm.cv[,m] == round(pr.ANN.cv$net.result))
+    
+    pbar$step()
+}
+
+cv.accuracy
+
+## Average acurracy
+mean(cv.accuracy)
+
+## Boxplot of the MSE error
+boxplot(cv.accuracy, xlab='Accuracy in cross validation',col='cyan',
+        border='blue',names='CV Accuracy',
+        main='CV Accuracy',horizontal=TRUE)
+```
+
+
+# Conclusion
+
+Right from the beginning of the analysis the huge disproportion of the target variable is a clear fact. Moreover, during the EDA we can tell that there is not a clear predisposition from the target groups towards any of the features' categories or range of values, the distributions are quite similar for both target groups. This made it extremely difficult for the models to classify the observation properly. Many methods have been used, with original, normalize and standardized data, applying distinct propagation algorithms, and finally trying to balance the data with oversampling and undersampling. However, any of the models had succeeded at identifying the hidden pattern that devides the two target groups. For future analysis I would suggest to add new variables, also may be removing some of the existing variables could avoid part of the noise. In addition, a combination of artificial neural networks with other algorithms such as SVM could help find a solution to this classification problem.
 
 # References 
 
