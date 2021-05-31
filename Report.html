@@ -91,8 +91,8 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
 
 
   <!--  https://schema.org/Article -->
-  <meta property="article:published" itemprop="datePublished" content="2021-05-30" />
-  <meta property="article:created" itemprop="dateCreated" content="2021-05-30" />
+  <meta property="article:published" itemprop="datePublished" content="2021-05-31" />
+  <meta property="article:created" itemprop="dateCreated" content="2021-05-31" />
   <meta name="article:author" content="Josep R.C." />
 
   <!--  https://developers.facebook.com/docs/sharing/webmasters#markup -->
@@ -110,7 +110,7 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
   <!--radix_placeholder_rmarkdown_metadata-->
 
   <script type="text/json" id="radix-rmarkdown-metadata">
-  {"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["title","description","author","date","output"]}},"value":[{"type":"character","attributes":{},"value":["Potential Client Detection"]},{"type":"character","attributes":{},"value":["An ANN aproach for customer Classification.\n"]},{"type":"list","attributes":{},"value":[{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","url","affiliation","affiliation_url"]}},"value":[{"type":"character","attributes":{},"value":["Josep R.C."]},{"type":"character","attributes":{},"value":["https://www.linkedin.com/in/josep%F0%9F%8C%AB-roman-cardell-414880184/"]},{"type":"character","attributes":{},"value":["UIB Student"]},{"type":"character","attributes":{},"value":["https://www.uib.cat/"]}]}]},{"type":"character","attributes":{},"value":["2021-05-30"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["distill::distill_article"]}},"value":[{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["toc","toc_depth","toc_float","code_folding","theme","selfe_contained"]}},"value":[{"type":"logical","attributes":{},"value":[true]},{"type":"integer","attributes":{},"value":[3]},{"type":"logical","attributes":{},"value":[true]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["theme1.css"]},{"type":"logical","attributes":{},"value":[false]}]}]}]}
+  {"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["title","description","author","date","output"]}},"value":[{"type":"character","attributes":{},"value":["Potential Client Detection"]},{"type":"character","attributes":{},"value":["An ANN aproach for customer Classification.\n"]},{"type":"list","attributes":{},"value":[{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","url","affiliation","affiliation_url"]}},"value":[{"type":"character","attributes":{},"value":["Josep R.C."]},{"type":"character","attributes":{},"value":["https://www.linkedin.com/in/josep%F0%9F%8C%AB-roman-cardell-414880184/"]},{"type":"character","attributes":{},"value":["UIB Student"]},{"type":"character","attributes":{},"value":["https://www.uib.cat/"]}]}]},{"type":"character","attributes":{},"value":["2021-05-31"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["distill::distill_article"]}},"value":[{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["toc","toc_depth","toc_float","code_folding","theme","selfe_contained"]}},"value":[{"type":"logical","attributes":{},"value":[true]},{"type":"integer","attributes":{},"value":[3]},{"type":"logical","attributes":{},"value":[true]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["theme1.css"]},{"type":"logical","attributes":{},"value":[false]}]}]}]}
   </script>
   <!--/radix_placeholder_rmarkdown_metadata-->
   
@@ -1726,7 +1726,7 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
 <!--radix_placeholder_front_matter-->
 
 <script id="distill-front-matter" type="text/json">
-{"title":"Potential Client Detection","description":"An ANN aproach for customer Classification.","authors":[{"author":"Josep R.C.","authorURL":"https://www.linkedin.com/in/josep%F0%9F%8C%AB-roman-cardell-414880184/","affiliation":"UIB Student","affiliationURL":"https://www.uib.cat/","orcidID":""}],"publishedDate":"2021-05-30T00:00:00.000+02:00","citationText":"R.C., 2021"}
+{"title":"Potential Client Detection","description":"An ANN aproach for customer Classification.","authors":[{"author":"Josep R.C.","authorURL":"https://www.linkedin.com/in/josep%F0%9F%8C%AB-roman-cardell-414880184/","affiliation":"UIB Student","affiliationURL":"https://www.uib.cat/","orcidID":""}],"publishedDate":"2021-05-31T00:00:00.000+02:00","citationText":"R.C., 2021"}
 </script>
 
 <!--/radix_placeholder_front_matter-->
@@ -1745,7 +1745,7 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
 <div class="d-byline">
   Josep R.C. <a href="https://www.linkedin.com/in/josep%F0%9F%8C%AB-roman-cardell-414880184/" class="uri">https://www.linkedin.com/in/josep%F0%9F%8C%AB-roman-cardell-414880184/</a> (UIB Student)<a href="https://www.uib.cat/" class="uri">https://www.uib.cat/</a>
   
-<br />2021-05-30
+<br />2021-05-31
 </div>
 
 <div class="d-article">
@@ -1804,7 +1804,12 @@ Libraries
 <p>Data was recorded from May 2008 to November 2010.</p>
 <h2 id="feature-selection">Feature Selection</h2>
 <p>From my lack of knowledge in terms of <em>Term Deposits</em> I first did a bit of research in order to better understand the matter of analysis and thus, be able to efficiently select the optimum variables. I focused my research on <a href="https://www.investopedia.com/terms/t/termdeposit.asp">Investopedia term deposit article</a>.</p>
-<p>The features are divided in: + <strong>Personal and bank related client data</strong>. I have decided to start with all variables as a profound description of the client is necessary in order to know if the person will be willing, or even able to invest in a term deposit. + <strong>Last contact data</strong>. Regarding the last call data, I believe it can be interesting to keep the month and day in which it occurred. My hypothesis is that there is a possible by which people in general fill more confident about their money in some periods of the year or the week. Also the duration of the call can be helpful. However, I’ve decided to not use a feature which labels the call as it was done via <em>telephone</em>, <em>cellular</em> or <em>unkown</em>, as a think it’s redundant for this problem. + Other attributes. I have kept the four variables as a description of the relation between the client and the current and previous campaigns.</p>
+<p>The features are divided in:</p>
+<ul>
+<li><p><strong>Personal and bank related client data</strong>. I have decided to start with all variables as a profound description of the client is necessary in order to know if the person will be willing, or even able to invest in a term deposit.</p></li>
+<li><p><strong>Last contact data</strong>. Regarding the last call data, I believe it can be interesting to keep the month and day in which it occurred. My hypothesis is that there is a possible by which people in general fill more confident about their money in some periods of the year or the week. Also the duration of the call can be helpful. However, I’ve decided to not use a feature which labels the call as it was done via <em>telephone</em>, <em>cellular</em> or <em>unkown</em>, as a think it’s redundant for this problem.</p></li>
+<li><p>Other attributes. I have kept the four variables as a description of the relation between the client and the current and previous campaigns.</p></li>
+</ul>
 <p>For a detailed description of all features go to the <a href="https://github.com/Josep-at-work/Predicting-Customer-Subcription-ANN/blob/main/Data/bank-names.txt">metadata</a> file.</p>
 <h1 id="data-wrangling">Data Wrangling</h1>
 <p>First of all, I’ve loaded the dataset and removed the <em>contact</em> feature. Then, I’ve modified some data types. I’ve transformed all binary variables into 1 and 0 instead of <em>yes</em> and <em>no</em> respectively, and all character features into factors. Both of this changes will help on the visualization tasks and the training of the model.</p>

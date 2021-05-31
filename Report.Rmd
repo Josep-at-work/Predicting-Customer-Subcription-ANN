@@ -48,9 +48,12 @@ Data was recorded from May 2008 to November 2010.
 From my lack of knowledge in terms of *Term Deposits* I first did a bit of research in order to better understand the matter of analysis and thus, be able to efficiently select the optimum variables. I focused my research on [Investopedia term deposit article](https://www.investopedia.com/terms/t/termdeposit.asp). 
 
 The features are divided in:
-  + **Personal and bank related client data**. I have decided to start with all variables as a profound description of the client is necessary in order to know if the person will be willing, or even able to invest in a term deposit.
-  + **Last contact data**. Regarding the last call data, I believe it can be interesting to keep the month and day in which it occurred. My hypothesis is that there is a possible by which people in general fill more confident about their money in some periods of the year or the week. Also the duration of the call can be helpful. However, I've decided to not use a feature which labels the call as it was done via *telephone*, *cellular* or *unkown*, as a think it's redundant for this problem.
-  + Other attributes. I have kept the four variables as a description of the relation between the client and the current and previous campaigns.
+
++ **Personal and bank related client data**. I have decided to start with all variables as a profound description of the client is necessary in order to know if the person will be willing, or even able to invest in a term deposit.
+
++ **Last contact data**. Regarding the last call data, I believe it can be interesting to keep the month and day in which it occurred. My hypothesis is that there is a possible by which people in general fill more confident about their money in some periods of the year or the week. Also the duration of the call can be helpful. However, I've decided to not use a feature which labels the call as it was done via *telephone*, *cellular* or *unkown*, as a think it's redundant for this problem.
+
++ Other attributes. I have kept the four variables as a description of the relation between the client and the current and previous campaigns.
   
 For a detailed description of all features go to the [metadata](https://github.com/Josep-at-work/Predicting-Customer-Subcription-ANN/blob/main/Data/bank-names.txt) file.
 
