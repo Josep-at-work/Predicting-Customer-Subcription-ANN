@@ -245,7 +245,7 @@ n = nrow(data)
 m = ncol(data)
 idx = sample(n, n*0.7)
 train = model_data[idx, ]
-test = model_data[idx, ]
+test = model_data[-idx, ]
 summary(train); summary(test)
 ```
 
@@ -532,7 +532,7 @@ set.seed(2805)
 n = nrow(undersamp_data)
 idx = sample(n, n*0.7)
 train3 = model_data2[idx, ]
-test3 = model_data2[idx, ]
+test3 = model_data2[-idx, ]
 X_train_norm3 = apply(train3[-m], 2, FUN = minmax)
 X_test_norm3 = apply(test3[-m], 2, FUN = minmax)
 train_norm3 = cbind(X_train_norm3, train3$y)
